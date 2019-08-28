@@ -166,6 +166,11 @@ public class MainWindow extends JFrame {
                             System.out.println("Выбрана отмена");
                         }
                     }else {
+                        System.out.println("file dont exist");
+                        File dir = new File("client_storage/" + userName);
+                        if (!dir.exists()) {
+                            dir.mkdir();
+                        }
                         newNetworkForDownloadFile (fileName, size);
                     }
                 }

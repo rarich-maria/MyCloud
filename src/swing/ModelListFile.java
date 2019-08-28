@@ -27,10 +27,15 @@ public class ModelListFile extends JTable {
 
     public void updataTable (String [][] data) {
         System.out.println("ModelListFile updataTable");
-        for (int i=0; i<data.length; i++){
-            tableModel.addRow(data[i]);
-            System.out.println(data[i][0] + "  " + data[i][1]);
+        if (data == null) {
+            System.out.println("null");
+        }else {
+            for (int i=0; i<data.length; i++){
+                tableModel.addRow(data[i]);
+                System.out.println(data[i][0] + "  " + data[i][1]);
+            }
         }
+
 
 
 
