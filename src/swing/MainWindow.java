@@ -342,11 +342,9 @@ public class MainWindow extends JFrame {
         if (result == JOptionPane.YES_OPTION) {
             for (Network net : listDownload.values()) {
                 listForDeletFile.put(net.getFileData().getFileName(), net.getFileData().getStatus());
+                //net.sendMessage(new CommandMessage(CommandMessage.Command.STOP));
                 net.stop();
                 net.getThread().join();
-                System.out.println("add data to listForDeletFile isAlive " + net.getThread().isAlive() +
-                          net.getCurrentChannel().isActive() +
-                          net.getCurrentChannel().isOpen());
             }
 
             if (listDownload.isEmpty()){
@@ -378,6 +376,15 @@ public class MainWindow extends JFrame {
         return res;
     }
 
+    public void showMessageDownloadComplited (String fileName) {
+
+        JOptionPane.showMessageDialog(MainWindow.this,
+                  "Скачивание файла "+fileName+" завершено",
+                  "Скачивание завершено",
+                  JOptionPane.PLAIN_MESSAGE);
+
+    }
+
 
 
     public void showMessageDeleteDownloadFile(String fileName, Integer idx) throws InterruptedException {
@@ -392,10 +399,12 @@ public class MainWindow extends JFrame {
 
             System.out.println("Выбрана остановка загрузки файла и его удаление");
 
+            //listDownload.get(fileName).sendMessage(new CommandMessage(CommandMessage.Command.DELETE, fileName, idx));
+            //listDownload.get(fileName).sendMessage(new CommandMessage(CommandMessage.Command.STOP));
             listDownload.get(fileName).stop();
             listDownload.get(fileName).getThread().join();
-            network.sendMessage(new CommandMessage(CommandMessage.Command.DELETE, fileName, idx));
 
+            network.sendMessage(new CommandMessage(CommandMessage.Command.DELETE, fileName, idx));
 
         }else if (result == JOptionPane.NO_OPTION) {
             System.out.println("Выбрано продолжение загрузки файла");
@@ -404,10 +413,6 @@ public class MainWindow extends JFrame {
 
 
     }
-
-
-
-
 
 
     public int searchEqualsFileName (String fileName) {

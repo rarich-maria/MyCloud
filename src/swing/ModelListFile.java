@@ -29,16 +29,12 @@ public class ModelListFile extends JTable {
         System.out.println("ModelListFile updataTable");
         if (data == null) {
             System.out.println("null");
-        }else {
-            for (int i=0; i<data.length; i++){
+        } else {
+            for (int i = 0; i < data.length; i++) {
                 tableModel.addRow(data[i]);
                 System.out.println(data[i][0] + "  " + data[i][1]);
             }
         }
-
-
-
-
     }
 
     public void removeFile (Integer idx) {

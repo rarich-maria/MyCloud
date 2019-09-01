@@ -12,6 +12,7 @@ import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
 import server.InputDownloadeFileHandler;
+import server.InputMessageDownloadFileHandler;
 import server.OutByteFileSendHandler;
 import server.OutFileSendHandler;
 import swing.MainWindow;
@@ -92,7 +93,9 @@ public class Network {
             clientBootstrap.remoteAddress(new InetSocketAddress("localhost", 8188));
             clientBootstrap.handler(new ChannelInitializer<SocketChannel>() {
                 protected void initChannel(SocketChannel socketChannel) throws Exception {
-                    socketChannel.pipeline().addLast(new ChannelHandler[]{new ObjectDecoder(104857600, ClassResolvers.cacheDisabled((ClassLoader) null)), new ObjectEncoder(), Network.this.new ReadMessageHandler(parent)});
+                    socketChannel.pipeline().addLast(new ChannelHandler[]{new ObjectDecoder(104857600, ClassResolvers.cacheDisabled((ClassLoader) null)),
+                              new ObjectEncoder(),
+                              Network.this.new ReadMessageHandler(parent)});
                     Network.this.currentChannel = socketChannel;
                 }
             });
@@ -113,6 +116,7 @@ public class Network {
     }
 
     public void stop() {
+        getCurrentChannel().writeAndFlush(new CommandMessage(CommandMessage.Command.STOP));
         this.currentChannel.close();
 
     }
@@ -120,17 +124,19 @@ public class Network {
 
     public void changeHandlerForSendFile(String path) {
 
-        this.currentChannel.pipeline().remove(ObjectEncoder.class);
-        this.currentChannel.pipeline().addFirst(new ChannelHandler[]{new OutFileSendHandler(path, parent, this)});
-        //this.currentChannel.pipeline().addFirst(new ChannelHandler[]{new OutByteFileSendHandler(path, parent, this)});
-        getCurrentChannel().writeAndFlush("File start");
+        //this.currentChannel.pipeline().remove(ObjectEncoder.class);
+        //this.currentChannel.pipeline().addFirst(new ChannelHandler[]{new OutFileSendHandler(path, parent, this)});
+        this.currentChannel.pipeline().addLast(new ChannelHandler[]{new OutByteFileSendHandler(path)});
+        //this.currentChannel.pipeline().addBefore("ObjectEncoder", "OutByteFileSendHandler", new OutByteFileSendHandler(path, parent, this));
+        getCurrentChannel().writeAndFlush(new CommandMessage(CommandMessage.Command.FILE_DOWNLOAD_NEXT_PART, 0));
 
     }
 
     public void changeHandlerForDownloadFile(String userName, String path, long size) {
-        this.currentChannel.pipeline().remove(ObjectDecoder.class);
-        this.currentChannel.pipeline().addLast(new ChannelHandler[]{new InputDownloadeFileHandler("client_storage", path, userName, size)});
-        this.currentChannel.pipeline().remove(ReadMessageHandler.class);
+        //this.currentChannel.pipeline().remove(ObjectDecoder.class);
+        //this.currentChannel.pipeline().addLast(new ChannelHandler[]{new InputDownloadeFileHandler("client_storage", path, userName, size)});
+        this.currentChannel.pipeline().addLast(new ChannelHandler[]{new InputMessageDownloadFileHandler("client_storage", path, userName, size, parent)});
+        //this.currentChannel.pipeline().remove(ReadMessageHandler.class);
     }
 
     public void sendMessage (AbstractMessage message) {
@@ -192,9 +198,22 @@ public class Network {
                     String [][] arr = {{fileData.getFileName(),"Download..." }};
                     parent.getTableFiles().updataTable(arr);
                     changeHandlerForSendFile(fileData.getPath());
+                }else if (command.getCommand() == CommandMessage.Command.FILE_DOWNLOAD_NEXT_PART) {
+                    System.out.println("FILE_DOWNLOAD_NEXT_PART getIdx" + command.getIdx());
+                    getCurrentChannel().writeAndFlush(command);
+                }else if (command.getCommand() == CommandMessage.Command.FILE_UPLOAD_COMPLETED) {
+                    System.out.println("Загрузка файла завершена");
+                    parent.getTableFiles().removeFile(parent.searchEqualsFileName(fileData.getFileName()));
+                    String [][] arr = {{fileData.getFileName(),fileData.getSize()+ " byte" }};
+                    parent.getTableFiles().updataTable(arr);
+                    ctx.close();
                 }
+            }else if (mes instanceof FileMessage) {
+                FileMessage message = (FileMessage) mes;
+                System.out.println("It is FileMessage message.partNumber / message.partsCount " +
+                          message.partNumber + "  /  " + message.partsCount);
+                ctx.fireChannelRead(message);
             }
-
         }
 
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
@@ -206,13 +225,7 @@ public class Network {
                 ctx.close();
                 cause.printStackTrace();
             }
-
-
-
         }
-
     }
-
-
 }
 

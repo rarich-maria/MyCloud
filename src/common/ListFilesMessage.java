@@ -16,21 +16,19 @@ public class ListFilesMessage extends AbstractMessage {
             myFiles.mkdir();
         }
         File[] files = myFiles.listFiles();
-        if (files.length!=0) {
-            String arr [][] = new String[files.length][2];
 
+        if (files.length!=0) {
+            arr = new String[files.length][2];
             for (int i=0; i<files.length; i++){
                 arr[i][0]=files[i].getName();
                 arr[i][1]=files[i].length() + " byte";
                 System.out.println(arr[i][0] + "  " + arr[i][1]);
             }
             return arr;
-        }else {
+        } else {
             arr = null;
             System.out.println("файлов нет");
         }
-
-
         return arr;
     }
 
