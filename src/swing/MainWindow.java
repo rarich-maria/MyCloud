@@ -4,6 +4,7 @@ import client.Network;
 import common.CommandMessage;
 import common.InfoFileClass;
 import common.NewChanelForSendFileMessage;
+import common.StatusFile;
 
 import javax.swing.*;
 import java.awt.*;
@@ -36,26 +37,23 @@ public class MainWindow extends JFrame {
     private Map <String, Network> listDownload = new HashMap();
     private Map <String, StatusFile> listForDeletFile = new HashMap();
 
+    private final String CLIENT_STORAGE = "client_storage/";
+
     public MainWindow() {
-        setTitle("Хранилище");
-        //setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Облачное хранилище");
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-
         setBounds(200, 200, 500, 500);
-
         setLayout(new BorderLayout());
         buttonPanel = new JPanel();
-
         Box contents = new Box(BoxLayout.Y_AXIS);
         table = new ModelListFile();
         contents.add(new JScrollPane(table.getTable()));
         add(contents, BorderLayout.CENTER);
 
-
-        downloadFile = new JButton("Download");
-        addNewFileOnServer = new JButton("Add new File");
-        deleteFile = new JButton("Delete");
-        myStorage = new JButton("Local storage");
+        downloadFile = new JButton("Скачать");
+        addNewFileOnServer = new JButton("Загрузить");
+        deleteFile = new JButton("Удалить");
+        myStorage = new JButton("Загрузки");
         fileChooserForDownloadOnServer = new JFileChooser();
 
         GridLayout layout = new GridLayout(0, 4, 5, 12);
@@ -65,10 +63,6 @@ public class MainWindow extends JFrame {
         buttonPanel.add (deleteFile);
         buttonPanel.add (myStorage);
         add(buttonPanel, BorderLayout.SOUTH);
-
-
-
-
 
        addWindowListener(new WindowAdapter() {
 
@@ -88,36 +82,25 @@ public class MainWindow extends JFrame {
                     }else {
                         try {
                             if (showMessageForCloseWindow()) {
-                                System.out.println("add delet file");
                                 network.stop();
                                 network.getThread().join();
                                 setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
                                 super.windowClosing(e);
                             }else {
                                 System.out.println("продолжить загрузку");
-
                             }
                         } catch (InterruptedException ex) {
                             ex.printStackTrace();
                         }
                     }
-
                 }
-                //super.windowClosing(e);
             }
         }
 
         );
 
         setVisible(true);
-
-
-
-        //Старт Network
         network = new Network(this);
-
-
-        //Старт окна авторизации
         loginDialog = new LoginDialog(this, network);
         loginDialog.setVisible(true);
 
@@ -125,37 +108,26 @@ public class MainWindow extends JFrame {
             System.exit(0);
         }
 
-// Не нашла как отключить множественное выделение строк в таблице,
-// при выделении нескольких файлов скачивается только первый из выбранных
-
         downloadFile.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
 
                 int idx = table.getTable().getSelectedRow();
                 if (idx==-1) {
-                    System.out.println("Файл не выбран");
                     JOptionPane.showMessageDialog(MainWindow.this,
                               "Выберите файл для скачивания",
                               "Внимание!",
                               JOptionPane.PLAIN_MESSAGE);
-
                 }else {
                     String fileName = (String) table.getTable().getValueAt(idx, 0);
-                    System.out.println("File size " + table.getTable().getValueAt(idx, 1));
 
                     String[] subStr;
                     String str =(String) table.getTable().getValueAt(idx, 1);
                     String delimeter = " byte";
                     subStr = str.split(delimeter);
-                    System.out.println("Length "+subStr.length);
-                    for(int i = 0; i < subStr.length; i++) {
-                        System.out.println(subStr[i]);
-                    }
+
                     long size = Long.valueOf(subStr[0]);
 
-                    System.out.println("File name from row " + fileName);
-
-                    File fileExist = new File ("client_storage/" + userName + "/"+fileName);
+                    File fileExist = new File (CLIENT_STORAGE + userName + "/"+fileName);
                     if (fileExist.exists()) {
                         boolean result = showMessageForLocalStorage(fileName);
                         if (result) {
@@ -166,28 +138,21 @@ public class MainWindow extends JFrame {
                             System.out.println("Выбрана отмена");
                         }
                     }else {
-                        System.out.println("file dont exist");
-                        File dir = new File("client_storage/" + userName);
+                        File dir = new File(CLIENT_STORAGE + userName);
                         if (!dir.exists()) {
                             dir.mkdir();
                         }
                         newNetworkForDownloadFile (fileName, size);
                     }
                 }
-
-
-
             }
         });
-
-
 
         deleteFile.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
 
                 Integer idx = table.getTable().getSelectedRow();
                 String fileName = (String) table.getTable().getValueAt(idx, 0);
-                System.out.println("File name from row " + fileName + " idx " +idx );
 
                 if (!listDownload.containsKey(fileName)) {
                     network.sendMessage(new CommandMessage(CommandMessage.Command.DELETE, fileName, idx));
@@ -198,7 +163,6 @@ public class MainWindow extends JFrame {
                         ex.printStackTrace();
                     }
                 }
-
             }
         });
 
@@ -206,20 +170,14 @@ public class MainWindow extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 fileChooserForDownloadOnServer.setDialogTitle("Выбор файла");
                 fileChooserForDownloadOnServer.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-                int result = fileChooserForDownloadOnServer.showOpenDialog(MainWindow.this);
-
+                fileChooserForDownloadOnServer.showOpenDialog(MainWindow.this);
 
                 String path = fileChooserForDownloadOnServer.getSelectedFile().getPath();
-
-                System.out.println("ChooserFile " + path);
-
                 InfoFileClass fileData = new InfoFileClass(path, fileChooserForDownloadOnServer.getSelectedFile().getName(), fileChooserForDownloadOnServer.getSelectedFile().length(), StatusFile.SEND);
-
                 Network networkAddNewFileOnServer = new Network(MainWindow.this, fileData);
                 listDownload.put(fileChooserForDownloadOnServer.getSelectedFile().getName(), networkAddNewFileOnServer);
                 networkAddNewFileOnServer.sendMessage(new NewChanelForSendFileMessage(userName));
                 networkAddNewFileOnServer.sendMessage(new CommandMessage(CommandMessage.Command.ADD, fileChooserForDownloadOnServer.getSelectedFile().getName(), fileChooserForDownloadOnServer.getSelectedFile().length()));
-
             }
         });
 
@@ -231,7 +189,7 @@ public class MainWindow extends JFrame {
                 final JFileChooser chooser = new JFileChooser();
                 chooser.setCurrentDirectory(
                         chooser.getFileSystemView().getParentDirectory(
-                                new File("client_storage/" + userName)));
+                                new File(CLIENT_STORAGE + userName)));
                 chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
                 chooser.showDialog(myStorage, "Open file");
                 String path = chooser.getSelectedFile().getPath();
@@ -249,8 +207,6 @@ public class MainWindow extends JFrame {
                 }
             }
         });
-
-
     }
 
     public LoginDialog getLoginDialog(){
@@ -267,7 +223,7 @@ public class MainWindow extends JFrame {
 
     private void newNetworkForDownloadFile (String fileName, long size) {
 
-        InfoFileClass infoFile = new InfoFileClass("server_storage/"+userName+"/"+fileName, fileName, size, StatusFile.DOWNLOAD);
+        InfoFileClass infoFile = new InfoFileClass(CLIENT_STORAGE + userName+"/"+fileName, fileName, size, StatusFile.DOWNLOAD);
         Network networkDownloadFile = new Network(MainWindow.this, infoFile);
         listDownload.put(fileName, networkDownloadFile);
         System.out.println("networkDownloadFile username " + userName);
@@ -342,7 +298,6 @@ public class MainWindow extends JFrame {
         if (result == JOptionPane.YES_OPTION) {
             for (Network net : listDownload.values()) {
                 listForDeletFile.put(net.getFileData().getFileName(), net.getFileData().getStatus());
-                //net.sendMessage(new CommandMessage(CommandMessage.Command.STOP));
                 net.stop();
                 net.getThread().join();
             }
@@ -352,10 +307,8 @@ public class MainWindow extends JFrame {
                 for (Map.Entry st: listForDeletFile.entrySet()) {
                     if (st.getValue() == StatusFile.SEND) {
                         network.sendMessage(new CommandMessage(CommandMessage.Command.DELETE, st.getKey().toString(), null));
-                        System.out.println("It is send file delete");
                     }else if (st.getValue() == StatusFile.DOWNLOAD) {
-                        File fileExist = new File ("client_storage/" + userName + "/"+st.getKey().toString());
-
+                        File fileExist = new File (CLIENT_STORAGE + userName + "/"+st.getKey().toString());
                         if (fileExist.exists()) {
                             if (fileExist.delete()) {
                                 System.out.println("File delete on client");
@@ -372,7 +325,6 @@ public class MainWindow extends JFrame {
             System.out.println("Отмена выхода, продолжение загрузки");
 
         }
-
         return res;
     }
 
@@ -382,10 +334,7 @@ public class MainWindow extends JFrame {
                   "Скачивание файла "+fileName+" завершено",
                   "Скачивание завершено",
                   JOptionPane.PLAIN_MESSAGE);
-
     }
-
-
 
     public void showMessageDeleteDownloadFile(String fileName, Integer idx) throws InterruptedException {
 
@@ -396,22 +345,12 @@ public class MainWindow extends JFrame {
         );
 
         if (result == JOptionPane.YES_OPTION) {
-
-            System.out.println("Выбрана остановка загрузки файла и его удаление");
-
-            //listDownload.get(fileName).sendMessage(new CommandMessage(CommandMessage.Command.DELETE, fileName, idx));
-            //listDownload.get(fileName).sendMessage(new CommandMessage(CommandMessage.Command.STOP));
             listDownload.get(fileName).stop();
             listDownload.get(fileName).getThread().join();
-
             network.sendMessage(new CommandMessage(CommandMessage.Command.DELETE, fileName, idx));
-
         }else if (result == JOptionPane.NO_OPTION) {
             System.out.println("Выбрано продолжение загрузки файла");
-
         }
-
-
     }
 
 
@@ -427,10 +366,7 @@ public class MainWindow extends JFrame {
             }else {
                 System.out.println("Совпадений нет");
             }
-
         }
-
         return idx;
     }
-
 }

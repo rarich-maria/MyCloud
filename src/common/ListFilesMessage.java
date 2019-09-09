@@ -5,13 +5,14 @@ import java.io.File;
 public class ListFilesMessage extends AbstractMessage {
 
     private String [][] arr;
+    private final String SERVER_STORAGE = "server_storage/";
 
     public ListFilesMessage (String pathFile) {
         arr = data(pathFile);
     }
 
     private String [][] data (String pathFile) {
-        File myFiles = new File("server_storage/"+pathFile);
+        File myFiles = new File(SERVER_STORAGE+pathFile);
         if (!myFiles.exists()) {
             myFiles.mkdir();
         }
@@ -22,12 +23,10 @@ public class ListFilesMessage extends AbstractMessage {
             for (int i=0; i<files.length; i++){
                 arr[i][0]=files[i].getName();
                 arr[i][1]=files[i].length() + " byte";
-                System.out.println(arr[i][0] + "  " + arr[i][1]);
             }
             return arr;
         } else {
             arr = null;
-            System.out.println("файлов нет");
         }
         return arr;
     }

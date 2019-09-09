@@ -13,6 +13,4 @@ public class FileMessage extends AbstractMessage {
         this.partsCount = partsCount;
         this.data = data;
     }
-
-
 }

@@ -1,4 +1,4 @@
-package server;
+package common.handlers;
 
 import common.CommandMessage;
 import common.FileMessage;
@@ -11,7 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-public class InputMessageDownloadFileHandler extends ChannelInboundHandlerAdapter {
+public class InputDownloadFileHandler extends ChannelInboundHandlerAdapter {
 
     private String pathFile;
     private String fileName;
@@ -20,7 +20,7 @@ public class InputMessageDownloadFileHandler extends ChannelInboundHandlerAdapte
     private BufferedOutputStream out;
     private MainWindow parent;
 
-    public InputMessageDownloadFileHandler(String pathFile, String fileName, String userName, long size, MainWindow parent) {
+    public InputDownloadFileHandler(String pathFile, String fileName, String userName, long size, MainWindow parent) {
 
         this.fileName = fileName;
         this.pathFile = pathFile;
@@ -30,20 +30,13 @@ public class InputMessageDownloadFileHandler extends ChannelInboundHandlerAdapte
     }
 
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-
         FileMessage message = (FileMessage) msg;
-        System.out.println("It is FileMessage InputMessageDownloadFileHandler message.partNumber / message.partsCount " +
-                  message.partNumber + "  /  " + message.partsCount);
-
-        out = new BufferedOutputStream(new FileOutputStream(pathFile+"/"+userName+"/"+fileName, true));
-
+        out = new BufferedOutputStream(new FileOutputStream(pathFile+userName+"/"+fileName, true));
         out.write(message.data);
         out.flush();
 
         if (message.partNumber%100 == 0L) {
-
             ctx.writeAndFlush(new CommandMessage(CommandMessage.Command.FILE_DOWNLOAD_NEXT_PART, message.partNumber));
-            System.out.println("Next part " + message.partNumber);
             out.close();
         }
 
@@ -51,23 +44,16 @@ public class InputMessageDownloadFileHandler extends ChannelInboundHandlerAdapte
             out.close();
             if (parent == null){
                 ctx.writeAndFlush(new CommandMessage(CommandMessage.Command.FILE_UPLOAD_COMPLETED));
-                System.out.println("Command.FILE_UPLOAD_COMPLETED");
             }else {
                 parent.showMessageDownloadComplited(fileName);
             }
-
             ctx.close();
         }
-
-
-
-
-
     }
 
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         if (cause instanceof IOException) {
-            System.out.println("=================================n" );
+            System.out.println("=================================" );
             System.out.println("==== IT is IOException ====" );
         }
         if (cause instanceof FileNotFoundException) {
@@ -78,5 +64,4 @@ public class InputMessageDownloadFileHandler extends ChannelInboundHandlerAdapte
         ctx.close();
         cause.printStackTrace();
     }
-
 }

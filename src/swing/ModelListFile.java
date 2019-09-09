@@ -6,16 +6,14 @@ import javax.swing.table.DefaultTableModel;
 
 public class ModelListFile extends JTable {
 
-    private Object[] columnsHeader = new String[] {"File name", "File size"};
+    private Object[] columnsHeader = new String[] {"Имя файла", "Размер файла"};
     private DefaultTableModel tableModel;
     private JTable table;
 
 
     public ModelListFile (){
-
         table = new JTable();
         tableModel = new DefaultTableModel(null, columnsHeader) {
-
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -26,7 +24,6 @@ public class ModelListFile extends JTable {
     }
 
     public void updataTable (String [][] data) {
-        System.out.println("ModelListFile updataTable");
         if (data == null) {
             System.out.println("null");
         } else {
@@ -38,20 +35,10 @@ public class ModelListFile extends JTable {
     }
 
     public void removeFile (Integer idx) {
-
         tableModel.removeRow(idx);
     }
-
-
 
     public JTable getTable () {
         return this.table;
     }
-
-    public DefaultTableModel getTableModel () {
-        return this.tableModel;
-    }
-
-
-
 }
