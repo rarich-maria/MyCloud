@@ -37,7 +37,6 @@ public class InputDownloadFileHandler extends ChannelInboundHandlerAdapter {
 
         if (message.partNumber%100 == 0L) {
             ctx.writeAndFlush(new CommandMessage(CommandMessage.Command.FILE_DOWNLOAD_NEXT_PART, message.partNumber));
-            out.close();
         }
 
         if (message.partNumber == message.partsCount) {
@@ -49,6 +48,8 @@ public class InputDownloadFileHandler extends ChannelInboundHandlerAdapter {
             }
             ctx.close();
         }
+        out.close();
+
     }
 
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
