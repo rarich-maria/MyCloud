@@ -5,7 +5,6 @@ public class NewChanelForSendFileMessage extends AbstractMessage {
 
     public NewChanelForSendFileMessage (String userName) {
         this.userName = userName;
-
     }
 
     public String getUserName() {

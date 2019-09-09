@@ -1,7 +1,5 @@
 package common;
 
-import swing.StatusFile;
-
 public class InfoFileClass {
 
     private String path;

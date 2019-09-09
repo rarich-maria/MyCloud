@@ -11,9 +11,8 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
-import server.InputDownloadeFileHandler;
-import server.OutByteFileSendHandler;
-import server.OutFileSendHandler;
+import common.handlers.InputDownloadFileHandler;
+import common.handlers.OutSendFileHandler;
 import swing.MainWindow;
 
 import java.net.InetSocketAddress;
@@ -28,12 +27,13 @@ public class Network {
     private InfoFileClass fileData;
 
     private Thread thread;
+    private final String CLIENT_STORAGE = "client_storage/";
+    private final int maxObjectSize = 104857600;
 
     public Network(MainWindow parent) {
         this.parent = parent;
         this.userName = null;
         networkThreadStart();
-
     }
 
     public Network(MainWindow parent, InfoFileClass fileData) {
@@ -41,7 +41,6 @@ public class Network {
         this.userName = null;
         this.fileData = fileData;
         networkThreadStart();
-
     }
 
     private void networkThreadStart () {
@@ -69,7 +68,6 @@ public class Network {
         }
     }
 
-
     public InfoFileClass getFileData () {
         return fileData;
     }
@@ -92,7 +90,9 @@ public class Network {
             clientBootstrap.remoteAddress(new InetSocketAddress("localhost", 8188));
             clientBootstrap.handler(new ChannelInitializer<SocketChannel>() {
                 protected void initChannel(SocketChannel socketChannel) throws Exception {
-                    socketChannel.pipeline().addLast(new ChannelHandler[]{new ObjectDecoder(104857600, ClassResolvers.cacheDisabled((ClassLoader) null)), new ObjectEncoder(), Network.this.new ReadMessageHandler(parent)});
+                    socketChannel.pipeline().addLast(new ChannelHandler[]{new ObjectDecoder(maxObjectSize, ClassResolvers.cacheDisabled((ClassLoader) null)),
+                              new ObjectEncoder(),
+                              Network.this.new ReadMessageHandler(parent)});
                     Network.this.currentChannel = socketChannel;
                 }
             });
@@ -107,30 +107,24 @@ public class Network {
             } catch (InterruptedException var12) {
                 var12.printStackTrace();
             }
-
         }
-
     }
 
     public void stop() {
+        getCurrentChannel().writeAndFlush(new CommandMessage(CommandMessage.Command.STOP));
         this.currentChannel.close();
 
     }
 
-
     public void changeHandlerForSendFile(String path) {
-
-        this.currentChannel.pipeline().remove(ObjectEncoder.class);
-        this.currentChannel.pipeline().addFirst(new ChannelHandler[]{new OutFileSendHandler(path, parent, this)});
-        //this.currentChannel.pipeline().addFirst(new ChannelHandler[]{new OutByteFileSendHandler(path, parent, this)});
-        getCurrentChannel().writeAndFlush("File start");
+        this.currentChannel.pipeline().addLast(new ChannelHandler[]{new OutSendFileHandler(path)});
+        getCurrentChannel().writeAndFlush(new CommandMessage(CommandMessage.Command.FILE_DOWNLOAD_NEXT_PART, 0));
 
     }
 
     public void changeHandlerForDownloadFile(String userName, String path, long size) {
-        this.currentChannel.pipeline().remove(ObjectDecoder.class);
-        this.currentChannel.pipeline().addLast(new ChannelHandler[]{new InputDownloadeFileHandler("client_storage", path, userName, size)});
-        this.currentChannel.pipeline().remove(ReadMessageHandler.class);
+        this.currentChannel.pipeline().addLast(new ChannelHandler[]{new InputDownloadFileHandler(CLIENT_STORAGE, path, userName, size, parent)});
+
     }
 
     public void sendMessage (AbstractMessage message) {
@@ -148,15 +142,11 @@ public class Network {
         }
 
         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-            System.out.println("client get msg");
             AbstractMessage mes = (AbstractMessage)msg;
-
             if (mes instanceof AuthMessage) {
                 AuthMessage authMsg = (AuthMessage) mes;
-                System.out.println("auth result " + authMsg.isAuthSuccessfull());
                 if (!authMsg.isAuthSuccessfull()) {
                     parent.getLoginDialog().setConnected(false);
-                    System.out.println("auth exception!");
                     parent.getLoginDialog().tryCloseLoginDialog(new AuthException());
 
                 }else {
@@ -166,23 +156,18 @@ public class Network {
                     parent.setUserName(userName);
                 }
             }else if (mes instanceof ListFilesMessage) {
-                System.out.println("client get listFilesMessage");
                 ListFilesMessage listFilesMessage = (ListFilesMessage) mes;
                 parent.getTableFiles().updataTable(listFilesMessage.getArr());
             }else if (mes instanceof CommandMessage) {
                 CommandMessage command = (CommandMessage) mes;
                 if(command.getCommand() == CommandMessage.Command.DELETE) {
-                    System.out.println("File delete");
                     if (command.isResult()) {
                         if (command.getIdx() != null){
                             parent.getTableFiles().removeFile(command.getIdx());
                         }
-
-                        System.out.println("File delete true");
                         if (fileData!=null) {
                             sendMessage(new CommandMessage(CommandMessage.Command.ADD, fileData.getFileName(), fileData.getSize()));
                         }
-
                     }else {
                         System.out.println("File delete false");
                     }
@@ -192,27 +177,30 @@ public class Network {
                     String [][] arr = {{fileData.getFileName(),"Download..." }};
                     parent.getTableFiles().updataTable(arr);
                     changeHandlerForSendFile(fileData.getPath());
+                }else if (command.getCommand() == CommandMessage.Command.FILE_DOWNLOAD_NEXT_PART) {
+                    getCurrentChannel().writeAndFlush(command);
+                }else if (command.getCommand() == CommandMessage.Command.FILE_UPLOAD_COMPLETED) {
+                    System.out.println("Загрузка файла завершена");
+                    parent.getTableFiles().removeFile(parent.searchEqualsFileName(fileData.getFileName()));
+                    String [][] arr = {{fileData.getFileName(),fileData.getSize()+ " byte" }};
+                    parent.getTableFiles().updataTable(arr);
+                    ctx.close();
                 }
+            }else if (mes instanceof FileMessage) {
+                FileMessage message = (FileMessage) mes;
+                ctx.fireChannelRead(message);
             }
-
         }
 
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
             if (cause instanceof AuthException) {
-                System.out.println("IT is AuthException" );
                 throw new AuthException();
             }else {
                 parent.getLoginDialog().tryCloseLoginDialog(new Exception());
                 ctx.close();
                 cause.printStackTrace();
             }
-
-
-
         }
-
     }
-
-
 }
 
