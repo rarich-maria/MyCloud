@@ -1,4 +1,4 @@
-package common;
+package common.message;
 
 public class CommandMessage extends AbstractMessage {
     public enum Command {

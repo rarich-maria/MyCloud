@@ -1,4 +1,6 @@
-package common;
+package common.message;
+
+import common.StatusFile;
 
 public class InfoFileClass {
 

@@ -1,11 +1,12 @@
-package common;
+package common.message;
 
 import java.io.File;
 
 public class ListFilesMessage extends AbstractMessage {
-
-    private String [][] arr;
     private final String SERVER_STORAGE = "server_storage/";
+    private final String BYTE = " byte";
+    private String [][] arr;
+
 
     public ListFilesMessage (String pathFile) {
         arr = data(pathFile);
@@ -22,7 +23,7 @@ public class ListFilesMessage extends AbstractMessage {
             arr = new String[files.length][2];
             for (int i=0; i<files.length; i++){
                 arr[i][0]=files[i].getName();
-                arr[i][1]=files[i].length() + " byte";
+                arr[i][1]=files[i].length() + BYTE;
             }
             return arr;
         } else {

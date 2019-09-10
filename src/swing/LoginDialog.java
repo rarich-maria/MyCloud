@@ -1,7 +1,7 @@
 package swing;
 import client.Network;
 import client.auth.AuthException;
-import common.AuthMessage;
+import common.message.AuthMessage;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;

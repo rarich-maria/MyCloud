@@ -1,9 +1,9 @@
 package swing;
 
 import client.Network;
-import common.CommandMessage;
-import common.InfoFileClass;
-import common.NewChanelForSendFileMessage;
+import common.message.CommandMessage;
+import common.message.InfoFileClass;
+import common.message.NewChanelForSendFileMessage;
 import common.StatusFile;
 
 import javax.swing.*;

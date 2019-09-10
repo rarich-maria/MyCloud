@@ -1,6 +1,6 @@
 package client.auth;
 
-public interface AuthService extends AutoCloseable{
+public interface AuthService {
 
     void close() throws Exception;
 

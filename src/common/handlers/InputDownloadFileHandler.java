@@ -1,7 +1,7 @@
 package common.handlers;
 
-import common.CommandMessage;
-import common.FileMessage;
+import common.message.CommandMessage;
+import common.message.FileMessage;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import swing.MainWindow;
@@ -19,6 +19,7 @@ public class InputDownloadFileHandler extends ChannelInboundHandlerAdapter {
     private long size;
     private BufferedOutputStream out;
     private MainWindow parent;
+    private final int PART_STOP = 100;
 
     public InputDownloadFileHandler(String pathFile, String fileName, String userName, long size, MainWindow parent) {
 
@@ -31,35 +32,33 @@ public class InputDownloadFileHandler extends ChannelInboundHandlerAdapter {
 
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         FileMessage message = (FileMessage) msg;
-        out = new BufferedOutputStream(new FileOutputStream(pathFile+userName+"/"+fileName, true));
+        out = new BufferedOutputStream(new FileOutputStream(pathFile + userName + "/" + fileName, true));
         out.write(message.data);
         out.flush();
 
-        if (message.partNumber%100 == 0L) {
+        if (message.partNumber % PART_STOP == 0L) {
             ctx.writeAndFlush(new CommandMessage(CommandMessage.Command.FILE_DOWNLOAD_NEXT_PART, message.partNumber));
         }
-
         if (message.partNumber == message.partsCount) {
             out.close();
-            if (parent == null){
+            if (parent == null) {
                 ctx.writeAndFlush(new CommandMessage(CommandMessage.Command.FILE_UPLOAD_COMPLETED));
-            }else {
+            } else {
                 parent.showMessageDownloadComplited(fileName);
             }
             ctx.close();
         }
         out.close();
-
     }
 
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         if (cause instanceof IOException) {
-            System.out.println("=================================" );
-            System.out.println("==== IT is IOException ====" );
+            System.out.println("=================================");
+            System.out.println("==== IT is IOException ====");
         }
         if (cause instanceof FileNotFoundException) {
             System.out.println("Передача файла на сервер не завершена ");
-            System.out.println("==== IT is FileNotFoundException ====" );
+            System.out.println("==== IT is FileNotFoundException ====");
         }
         out.close();
         ctx.close();

@@ -2,7 +2,7 @@ package client;
 
 
 import client.auth.AuthException;
-import common.*;
+import common.message.*;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -157,7 +157,7 @@ public class Network {
                 }
             }else if (mes instanceof ListFilesMessage) {
                 ListFilesMessage listFilesMessage = (ListFilesMessage) mes;
-                parent.getTableFiles().updataTable(listFilesMessage.getArr());
+                parent.getTableFiles().updateTable(listFilesMessage.getArr());
             }else if (mes instanceof CommandMessage) {
                 CommandMessage command = (CommandMessage) mes;
                 if(command.getCommand() == CommandMessage.Command.DELETE) {
@@ -175,7 +175,7 @@ public class Network {
                     parent.showMessage(Network.this);
                 }else if (command.getCommand() == CommandMessage.Command.FILE_EXIST_FALSE) {
                     String [][] arr = {{fileData.getFileName(),"Download..." }};
-                    parent.getTableFiles().updataTable(arr);
+                    parent.getTableFiles().updateTable(arr);
                     changeHandlerForSendFile(fileData.getPath());
                 }else if (command.getCommand() == CommandMessage.Command.FILE_DOWNLOAD_NEXT_PART) {
                     getCurrentChannel().writeAndFlush(command);
@@ -183,7 +183,7 @@ public class Network {
                     System.out.println("Загрузка файла завершена");
                     parent.getTableFiles().removeFile(parent.searchEqualsFileName(fileData.getFileName()));
                     String [][] arr = {{fileData.getFileName(),fileData.getSize()+ " byte" }};
-                    parent.getTableFiles().updataTable(arr);
+                    parent.getTableFiles().updateTable(arr);
                     ctx.close();
                 }
             }else if (mes instanceof FileMessage) {

@@ -1,15 +1,11 @@
 package swing;
-
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
-
 public class ModelListFile extends JTable {
-
     private Object[] columnsHeader = new String[] {"Имя файла", "Размер файла"};
     private DefaultTableModel tableModel;
     private JTable table;
-
 
     public ModelListFile (){
         table = new JTable();
@@ -19,11 +15,10 @@ public class ModelListFile extends JTable {
                 return false;
             }
         };
-
         table.setModel(tableModel);
     }
 
-    public void updataTable (String [][] data) {
+    public void updateTable(String [][] data) {
         if (data == null) {
             System.out.println("null");
         } else {
