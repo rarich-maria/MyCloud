@@ -21,6 +21,7 @@ import java.util.Map;
 
 public class MainWindow extends JFrame {
 
+    private final String CLIENT_STORAGE = "client_storage/";
     private JButton downloadFile;
     private JButton addNewFileOnServer;
     private JButton deleteFile;
@@ -28,16 +29,11 @@ public class MainWindow extends JFrame {
     private JFileChooser fileChooserForDownloadOnServer;
     private JPanel buttonPanel;
     private ModelListFile table;
-
     private Network network;
     private LoginDialog loginDialog;
-
     private String userName = null;
-
     private Map <String, Network> listDownload = new HashMap();
     private Map <String, StatusFile> listForDeletFile = new HashMap();
-
-    private final String CLIENT_STORAGE = "client_storage/";
 
     public MainWindow() {
         setTitle("Облачное хранилище");
@@ -152,17 +148,24 @@ public class MainWindow extends JFrame {
             public void actionPerformed(ActionEvent e) {
 
                 Integer idx = table.getTable().getSelectedRow();
-                String fileName = (String) table.getTable().getValueAt(idx, 0);
-
-                if (!listDownload.containsKey(fileName)) {
-                    network.sendMessage(new CommandMessage(CommandMessage.Command.DELETE, fileName, idx));
+                if (idx==-1) {
+                    JOptionPane.showMessageDialog(MainWindow.this,
+                              "Выберите файл для скачивания",
+                              "Внимание!",
+                              JOptionPane.PLAIN_MESSAGE);
                 }else {
-                    try {
-                        showMessageDeleteDownloadFile(fileName, idx);
-                    } catch (InterruptedException ex) {
-                        ex.printStackTrace();
+                    String fileName = (String) table.getTable().getValueAt(idx, 0);
+                    if (!listDownload.containsKey(fileName)) {
+                        network.sendMessage(new CommandMessage(CommandMessage.Command.DELETE, fileName, idx));
+                    }else {
+                        try {
+                            showMessageDeleteDownloadFile(fileName, idx);
+                        } catch (InterruptedException ex) {
+                            ex.printStackTrace();
+                        }
                     }
                 }
+
             }
         });
 
@@ -176,6 +179,7 @@ public class MainWindow extends JFrame {
                 InfoFileClass fileData = new InfoFileClass(path, fileChooserForDownloadOnServer.getSelectedFile().getName(), fileChooserForDownloadOnServer.getSelectedFile().length(), StatusFile.SEND);
                 Network networkAddNewFileOnServer = new Network(MainWindow.this, fileData);
                 listDownload.put(fileChooserForDownloadOnServer.getSelectedFile().getName(), networkAddNewFileOnServer);
+                networkAddNewFileOnServer.changePipeline();
                 networkAddNewFileOnServer.sendMessage(new NewChanelForSendFileMessage(userName));
                 networkAddNewFileOnServer.sendMessage(new CommandMessage(CommandMessage.Command.ADD, fileChooserForDownloadOnServer.getSelectedFile().getName(), fileChooserForDownloadOnServer.getSelectedFile().length()));
             }
@@ -227,6 +231,7 @@ public class MainWindow extends JFrame {
         Network networkDownloadFile = new Network(MainWindow.this, infoFile);
         listDownload.put(fileName, networkDownloadFile);
         System.out.println("networkDownloadFile username " + userName);
+        networkDownloadFile.changePipeline();
         networkDownloadFile.sendMessage(new NewChanelForSendFileMessage(userName));
         networkDownloadFile.sendMessage(new CommandMessage(CommandMessage.Command.DOWNLOAD, fileName, size));
         networkDownloadFile.changeHandlerForDownloadFile(userName, fileName, size);
@@ -236,13 +241,13 @@ public class MainWindow extends JFrame {
         return listDownload;
     }
 
-    public void showMessage (Network net) {
-
+    public Integer showMessageFileExist(String fileName) {
+        Integer idx = null;
         int result = JOptionPane.showConfirmDialog(
                   MainWindow.this,
-                  "Файл " + net.getFileData().getFileName()+" уже существует на сервере, заменить?", "Внимание!",
+                  "Файл " + fileName +" уже существует на сервере, заменить?", "Внимание!",
                   JOptionPane.YES_NO_OPTION
-                  );
+        );
 
         if (result == JOptionPane.YES_OPTION) {
 
@@ -250,21 +255,21 @@ public class MainWindow extends JFrame {
             for (Integer i =0; i<table.getTable().getRowCount(); i++) {
                 String string = (String)table.getTable().getValueAt(i, 0);
                 System.out.println(string+" " + string.length());
-                if (net.getFileData().getFileName().equals(string)){
-                    net.sendMessage(new CommandMessage(CommandMessage.Command.DELETE, net.getFileData().getFileName(), i));
+                if (fileName.equals(string)){
+                    idx = i;
                     System.out.println("Совпадение номер строки " + i);
-                    break;
+                    return idx;
                 }else {
                     System.out.println("Совпадений нет");
                 }
-
             }
 
         }else if (result == JOptionPane.NO_OPTION) {
             System.out.println("Выбрана отмена загрузки файла");
-            net.stop();
         }
+        return idx;
     }
+
 
     public boolean showMessageForLocalStorage (String fileName) {
         boolean res = false;

@@ -11,12 +11,12 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 
 import java.io.File;
 
-public class ReadMessageHandler extends ChannelInboundHandlerAdapter {
+public class ServerReadMessageHandler extends ChannelInboundHandlerAdapter {
     private final String SERVER_STORAGE = "server_storage/";
     private final int INIT_PART = 0;
     private String userName;
 
-    public ReadMessageHandler(String userName) {
+    public ServerReadMessageHandler(String userName) {
         this.userName = userName;
     }
 

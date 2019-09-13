@@ -11,7 +11,7 @@ public class AuthHandler extends ChannelInboundHandlerAdapter {
     private String userName;
 
     public AuthHandler() {
-        this.userName = null;
+
     }
 
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -44,7 +44,7 @@ public class AuthHandler extends ChannelInboundHandlerAdapter {
     }
 
     private void changePipeline(ChannelHandlerContext ctx) {
-        ctx.pipeline().addLast(new ChannelHandler[]{new ReadMessageHandler(userName)});
+        ctx.pipeline().addLast(new ChannelHandler[]{new ServerReadMessageHandler(userName)});
         ctx.pipeline().remove(this.getClass());
     }
 }
