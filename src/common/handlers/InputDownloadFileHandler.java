@@ -1,8 +1,11 @@
 package common.handlers;
 
 import client.controller.impl.ClientEventController;
+import common.StatusFile;
+import common.TempFileClass;
 import common.message.CommandMessage;
 import common.message.FileMessage;
+import common.message.InfoFileClass;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import swing.MainWindow;
@@ -22,13 +25,13 @@ public class InputDownloadFileHandler extends ChannelInboundHandlerAdapter {
     private ClientEventController eventController;
     private final int PART_STOP = 100;
 
-    public InputDownloadFileHandler(String pathFile, String fileName, String userName, long size, ClientEventController eventController) {
-
+    public InputDownloadFileHandler(String pathFile, String fileName, String userName, long size, ClientEventController eventController) throws IOException {
         this.fileName = fileName;
         this.pathFile = pathFile;
         this.userName = userName;
         this.size = size;
         this.eventController = eventController;
+        //createFileTemp();
     }
 
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -50,6 +53,18 @@ public class InputDownloadFileHandler extends ChannelInboundHandlerAdapter {
             ctx.close();
         }
         out.close();
+    }
+
+    private void createFileTemp () throws IOException {
+        StatusFile statusFile;
+        if (eventController!=null) {
+            statusFile = StatusFile.DOWNLOAD;
+        }else {
+            statusFile = StatusFile.SEND;
+        }
+        InfoFileClass data = new InfoFileClass(pathFile, fileName, size, statusFile);
+        TempFileClass tmp = new TempFileClass(data, userName);
+        tmp.createTmp();
     }
 
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {

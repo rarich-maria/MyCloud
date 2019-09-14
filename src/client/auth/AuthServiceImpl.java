@@ -9,6 +9,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final String URL ="jdbc:sqlite:authorizationUsers.db";
     private final static String DB_DRIVER = "org.sqlite.JDBC";
+    private final String AUTH_QUERY = "SELECT * FROM authorizationUsers WHERE Name = ? AND Password= ?";
 
     static {
         try {
@@ -20,7 +21,7 @@ public class AuthServiceImpl implements AuthService {
     public AuthServiceImpl()  {
         try {
             con = DriverManager.getConnection(URL);
-            ps = con.prepareStatement("SELECT * FROM authorizationUsers WHERE Name = ? AND Password= ?");
+            ps = con.prepareStatement(AUTH_QUERY);
         } catch (SQLException e) {
             e.printStackTrace();
         }

@@ -1,5 +1,4 @@
 package client.handlers;
-import client.auth.AuthException;
 import client.controller.impl.ClientEventController;
 import common.handlers.OutSendFileHandler;
 import common.message.*;
@@ -8,7 +7,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
 public class ClientReadMessageHandler extends ChannelInboundHandlerAdapter {
-    //private String userName;
     private ClientEventController eventController;
     private InfoFileClass fileData;
 

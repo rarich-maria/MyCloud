@@ -9,7 +9,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.io.IOException;
 
 public class MainWindow extends JFrame {
     private final String CLIENT_STORAGE = "client_storage/";
@@ -112,11 +111,13 @@ public class MainWindow extends JFrame {
                 fileChooserForDownloadOnServer.setDialogTitle("Выбор файла");
                 fileChooserForDownloadOnServer.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
                 fileChooserForDownloadOnServer.showOpenDialog(MainWindow.this);
-                InfoFileClass fileData = new InfoFileClass(fileChooserForDownloadOnServer.getSelectedFile().getPath(),
-                          fileChooserForDownloadOnServer.getSelectedFile().getName(),
-                          fileChooserForDownloadOnServer.getSelectedFile().length(),
-                          StatusFile.SEND);
-                clientController.startFileNetwork(fileData);
+                if (fileChooserForDownloadOnServer.getSelectedFile() != null) {
+                    InfoFileClass fileData = new InfoFileClass(fileChooserForDownloadOnServer.getSelectedFile().getPath(),
+                              fileChooserForDownloadOnServer.getSelectedFile().getName(),
+                              fileChooserForDownloadOnServer.getSelectedFile().length(),
+                              StatusFile.SEND);
+                    clientController.startFileNetwork(fileData);
+                }
             }
         });
 
@@ -129,19 +130,24 @@ public class MainWindow extends JFrame {
                                     new File(CLIENT_STORAGE + userName)));
                 chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
                 chooser.showDialog(myStorage, "Open file");
-                String path = chooser.getSelectedFile().getPath();
-                openFile(path);
+                try {
+                    File file = new File (chooser.getSelectedFile().getPath());
+                    openFile(file);
+                }catch (NullPointerException ex) {
+                    System.out.println("Файл не выбран");
+                    ex.printStackTrace();
+                }
             }
         });
     }
 
-    private void openFile(String path) {
+    private void openFile(File file) {
         Desktop desktop = null;
         if (Desktop.isDesktopSupported()) {
             desktop = Desktop.getDesktop();
         }
         try {
-            desktop.open(new File(path));
+            desktop.open(file);
         } catch (Exception ioe) {
             System.out.println("Exception Desktop");
             ioe.printStackTrace();
