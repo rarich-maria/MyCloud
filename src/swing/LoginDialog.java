@@ -1,7 +1,7 @@
 package swing;
-import client.Network;
 import client.auth.AuthException;
-import common.message.AuthMessage;
+import client.controller.impl.ImplClientController;
+
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
@@ -19,14 +19,14 @@ public class LoginDialog extends JDialog {
     private JButton btnLogin;
     private JButton btnCancel;
 
-    private final Network network;
+    private ImplClientController clientController;
 
     private boolean connected;
 
-    public LoginDialog(Frame parent, Network network) {
+    public LoginDialog(Frame parent, ImplClientController clientController) {
         super(parent, "Окно авторизации", true);
 
-        this.network = network;
+        this.clientController = clientController;
         this.connected = false;
 
         JPanel panel = new JPanel(new GridBagLayout());
@@ -67,9 +67,7 @@ public class LoginDialog extends JDialog {
         btnLogin.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
-                    network.sendMessage(new AuthMessage(tfUsername.getText(), String.valueOf(pfPassword.getPassword())));
-
+                clientController.tryAuthorization(tfUsername.getText(), String.valueOf(pfPassword.getPassword()));
             }
         });
 
@@ -89,7 +87,6 @@ public class LoginDialog extends JDialog {
     }
 
     public void tryCloseLoginDialog (Throwable cause) {
-
         if (cause instanceof AuthException) {
             JOptionPane.showMessageDialog(LoginDialog.this,
                       "Ошибка авторизации",
@@ -103,11 +100,9 @@ public class LoginDialog extends JDialog {
                       JOptionPane.ERROR_MESSAGE);
             return;
         }
-
         if (connected){
             dispose();
         }
-
     }
 
     public void setConnected (boolean result) {

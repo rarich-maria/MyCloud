@@ -29,6 +29,30 @@ public class ModelListFile extends JTable {
         }
     }
 
+    public long getFileSize (int idx) {
+        String[] subStr;
+        String str =(String) table.getValueAt(idx, 1);
+        String delimeter = " byte";
+        subStr = str.split(delimeter);
+        return Long.valueOf(subStr[0]);
+    }
+
+    public Integer searchEqualsFileName (String fileName) {
+        Integer idx = null;
+        for (int i =0; i<table.getRowCount(); i++) {
+            String string = (String)table.getValueAt(i, 0);
+            System.out.println(string+" " + string.length());
+            if (fileName.equals(string)){
+                idx = i;
+                System.out.println("Совпадение номер строки " + i);
+                break;
+            }else {
+                System.out.println("Совпадений нет");
+            }
+        }
+        return idx;
+    }
+
     public void removeFile (Integer idx) {
         tableModel.removeRow(idx);
     }

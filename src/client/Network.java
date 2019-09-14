@@ -1,4 +1,5 @@
 package client;
+import client.controller.impl.ClientEventController;
 import client.handlers.AuthHandler;
 import client.handlers.ClientReadMessageHandler;
 import common.message.*;
@@ -11,59 +12,40 @@ import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
 import common.handlers.InputDownloadFileHandler;
-import swing.MainWindow;
-
 import java.net.InetSocketAddress;
 import java.util.concurrent.CountDownLatch;
 
 public class Network {
     private Channel currentChannel;
-    private MainWindow parent;
-    private InfoFileClass fileData;
     private Thread thread;
+    private ClientEventController eventController;
     private final String CLIENT_STORAGE = "client_storage/";
     private final int MAX_OBJECT_SIZE = 104857600;
     private final int PORT = 8188;
     private final String HOST_NAME = "localhost";
 
-    public Network(MainWindow parent) {
-        this.parent = parent;
-        networkThreadStart();
-    }
-
-    public Network(MainWindow parent, InfoFileClass fileData) {
-        this.parent = parent;
-        this.fileData = fileData;
+    public Network (ClientEventController eventController) {
+        this.eventController = eventController;
         networkThreadStart();
     }
 
     private void networkThreadStart () {
         CountDownLatch networkStarter = new CountDownLatch(1);
-
         thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 System.out.println("Сетевое подключение открыто");
                 start(networkStarter);
-                if (fileData!=null) {
-                    parent.getListDownload().remove(fileData.getFileName());
-                    System.out.println("remove network from listDownload");
-                }
+                eventController.tryRemoveEventControllerFromListDownload();
                 System.out.println("Сетевое подключение закрыто");
             }
         });
-
         thread.start();
-
         try {
             networkStarter.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-    }
-
-    public InfoFileClass getFileData () {
-        return fileData;
     }
 
     public Thread getThread  () {
@@ -87,8 +69,8 @@ public class Network {
                     socketChannel.pipeline().addLast(new ChannelHandler[]{
                               new ObjectDecoder(MAX_OBJECT_SIZE, ClassResolvers.cacheDisabled((ClassLoader) null)),
                               new ObjectEncoder(),
-                              new AuthHandler(parent),
-                              new ClientReadMessageHandler(parent, fileData)});
+                              new AuthHandler(eventController),
+                              new ClientReadMessageHandler(eventController)});
                     Network.this.currentChannel = socketChannel;
                 }
             });
@@ -113,7 +95,7 @@ public class Network {
     }
 
     public void changeHandlerForDownloadFile(String userName, String path, long size) {
-        this.currentChannel.pipeline().addLast(new ChannelHandler[]{new InputDownloadFileHandler(CLIENT_STORAGE, path, userName, size, parent)});
+        this.currentChannel.pipeline().addLast(new ChannelHandler[]{new InputDownloadFileHandler(CLIENT_STORAGE, path, userName, size, eventController)});
     }
 
     public void changePipeline() {

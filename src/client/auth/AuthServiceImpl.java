@@ -6,14 +6,13 @@ public class AuthServiceImpl implements AuthService {
     private boolean result;
     private Connection con;
     private PreparedStatement ps;
-    private PreparedStatement checkNameExist;
-    private PreparedStatement updateUserName;
 
     private final String URL ="jdbc:sqlite:authorizationUsers.db";
+    private final static String DB_DRIVER = "org.sqlite.JDBC";
 
     static {
         try {
-            Class.forName("org.sqlite.JDBC");
+            Class.forName(DB_DRIVER);
             } catch (ClassNotFoundException e) {
             e.printStackTrace();
             }
@@ -22,8 +21,6 @@ public class AuthServiceImpl implements AuthService {
         try {
             con = DriverManager.getConnection(URL);
             ps = con.prepareStatement("SELECT * FROM authorizationUsers WHERE Name = ? AND Password= ?");
-            checkNameExist = con.prepareStatement("SELECT * FROM authorizationUsers WHERE Name = ? ");
-            updateUserName = con.prepareStatement("UPDATE authorizationUsers SET Name = ? WHERE Name = ? AND Password= ?");
         } catch (SQLException e) {
             e.printStackTrace();
         }
