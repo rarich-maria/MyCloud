@@ -3,7 +3,7 @@ package common.message;
 public class CommandMessage extends AbstractMessage {
     public enum Command {
         DELETE, ADD, DOWNLOAD, FILE_EXIST_TRUE, FILE_EXIST_FALSE, STOP, FILE_DOWNLOAD_NEXT_PART,
-        FILE_UPLOAD_COMPLETED, SET_USER_NAME
+        FILE_UPLOAD_COMPLETED, UNLOADED_FILES_ON_SERVER
     }
 
     private Command command;

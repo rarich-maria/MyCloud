@@ -2,7 +2,9 @@ package common.message;
 
 import common.StatusFile;
 
-public class InfoFileClass {
+import java.io.Serializable;
+
+public class InfoFileClass implements Serializable {
 
     private String path;
     private String fileName;

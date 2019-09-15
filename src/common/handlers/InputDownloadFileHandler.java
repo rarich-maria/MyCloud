@@ -31,7 +31,7 @@ public class InputDownloadFileHandler extends ChannelInboundHandlerAdapter {
         this.userName = userName;
         this.size = size;
         this.eventController = eventController;
-        //createFileTemp();
+        createFileTemp();
     }
 
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -47,6 +47,7 @@ public class InputDownloadFileHandler extends ChannelInboundHandlerAdapter {
             out.close();
             if (eventController == null) {
                 ctx.writeAndFlush(new CommandMessage(CommandMessage.Command.FILE_UPLOAD_COMPLETED));
+                deleteTempFile();
             } else {
                 eventController.fileUploadCompleted();
             }
@@ -55,16 +56,29 @@ public class InputDownloadFileHandler extends ChannelInboundHandlerAdapter {
         out.close();
     }
 
-    private void createFileTemp () throws IOException {
-        StatusFile statusFile;
+    private void createFileTemp () {
+        /*StatusFile statusFile;
         if (eventController!=null) {
             statusFile = StatusFile.DOWNLOAD;
         }else {
             statusFile = StatusFile.SEND;
+        }*/
+        // Создание tmp фала только при внезапном отключении сервера
+        if (eventController==null) {
+            InfoFileClass data = new InfoFileClass(pathFile, fileName, size, StatusFile.SEND);
+            TempFileClass tmp = new TempFileClass(data, userName);
+            try {
+                tmp.createTmp();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-        InfoFileClass data = new InfoFileClass(pathFile, fileName, size, statusFile);
+    }
+
+    private void deleteTempFile () {
+        InfoFileClass data = new InfoFileClass(pathFile, fileName, size, StatusFile.SEND);
         TempFileClass tmp = new TempFileClass(data, userName);
-        tmp.createTmp();
+        tmp.deleteTmp();
     }
 
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {

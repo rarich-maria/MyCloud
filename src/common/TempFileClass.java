@@ -4,8 +4,9 @@ import common.message.InfoFileClass;
 
 import java.io.*;
 
-public class TempFileClass implements Serializable {
+public class TempFileClass {
     private final String SERVER_STORAGE = "server_storage/";
+    private final String SERVER_TMP = "tmp/";
     private InfoFileClass fileData;
     private String userName;
     private String path;
@@ -20,7 +21,8 @@ public class TempFileClass implements Serializable {
     }
 
     public void createTmp () throws IOException {
-        String path = SERVER_STORAGE+ userName +"/" + fileData.getFileName() + ".mytmp";
+        checkDirectory();
+        String path = SERVER_STORAGE+ userName +"/" + SERVER_TMP + fileData.getFileName() + ".mytmp";
         File file = new File(path);
         if (!file.exists()){
             ObjectOutputStream oos = null;
@@ -58,11 +60,19 @@ public class TempFileClass implements Serializable {
     }
 
     public void deleteTmp () {
+        String path = SERVER_STORAGE+ userName +"/" + SERVER_TMP + fileData.getFileName() + ".mytmp";
         File file = new File (path);
         if (file.delete()) {
             System.out.println("Delete tmpFile true");
         }else {
             System.out.println("Delete tmpFile false");
+        }
+    }
+
+    private void checkDirectory() {
+        File dir = new File(SERVER_STORAGE + userName+"/" + SERVER_TMP);
+        if (!dir.exists()) {
+            dir.mkdir();
         }
     }
 }

@@ -6,6 +6,8 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
+import java.io.IOException;
+
 public class AuthHandler extends ChannelInboundHandlerAdapter {
 
     private String userName;
@@ -31,10 +33,20 @@ public class AuthHandler extends ChannelInboundHandlerAdapter {
             userName = authMsg.getUserName();
             ctx.writeAndFlush(new AuthMessage(true, userName));
             ctx.writeAndFlush(new ListFilesMessage(userName));
+            checkTempFiles(ctx);
             authService.close();
             changePipeline(ctx);
         } else {
             ctx.writeAndFlush(new AuthMessage(false, userName));
+        }
+    }
+
+    private void checkTempFiles(ChannelHandlerContext ctx) throws IOException {
+        ListTempFilesMessage tempFilesMessage = new ListTempFilesMessage(userName);
+        if (!tempFilesMessage.getListTemp().isEmpty()) {
+            ctx.writeAndFlush(tempFilesMessage);
+        }else {
+            System.out.println("tempFilesMessage is null");
         }
     }
 
