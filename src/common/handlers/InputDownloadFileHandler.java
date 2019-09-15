@@ -25,7 +25,7 @@ public class InputDownloadFileHandler extends ChannelInboundHandlerAdapter {
     private ClientEventController eventController;
     private final int PART_STOP = 100;
 
-    public InputDownloadFileHandler(String pathFile, String fileName, String userName, long size, ClientEventController eventController) throws IOException {
+    public InputDownloadFileHandler(String pathFile, String fileName, String userName, long size, ClientEventController eventController) {
         this.fileName = fileName;
         this.pathFile = pathFile;
         this.userName = userName;
