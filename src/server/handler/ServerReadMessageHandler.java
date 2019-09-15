@@ -70,10 +70,12 @@ public class ServerReadMessageHandler extends ChannelInboundHandlerAdapter {
     }
 
     private void changeHandlerForDownloadFile(ChannelHandlerContext ctx, CommandMessage command) {
+        System.out.println("changeHandlerForDownloadFile " + command.getFileData().getFileName());
         File file = new File(SERVER_STORAGE + userName + "/" + command.getFileData().getFileName());
         if (file.exists()) {
             ctx.writeAndFlush(new CommandMessage(CommandMessage.Command.FILE_EXIST_TRUE));
         } else {
+            System.out.println("changeHandlerForDownloadFile file dont exist");
             ctx.writeAndFlush(new CommandMessage(CommandMessage.Command.FILE_EXIST_FALSE));
             ctx.pipeline().addLast(new ChannelHandler[]{new InputDownloadFileHandler(SERVER_STORAGE,
                                    userName, command.getFileData(), null)});

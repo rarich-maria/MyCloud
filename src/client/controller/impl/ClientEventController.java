@@ -106,6 +106,7 @@ public class ClientEventController {
     }
 
     public void initDownloadFileOnTable () {
+        parent.getTableFiles().removeFile(parent.searchEqualsFileName(fileData.getFileName()));
         String[][] arr = {{fileData.getFileName(), "Download..."}};
         parent.getTableFiles().updateTable(arr);
     }
