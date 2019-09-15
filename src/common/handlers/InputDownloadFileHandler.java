@@ -20,18 +20,19 @@ public class InputDownloadFileHandler extends ChannelInboundHandlerAdapter {
     private String pathFile;
     private String fileName;
     private String userName;
-    private long size;
+    private InfoFileClass fileData;
     private BufferedOutputStream out;
     private ClientEventController eventController;
     private final int PART_STOP = 100;
 
-    public InputDownloadFileHandler(String pathFile, String fileName, String userName, long size, ClientEventController eventController) {
-        this.fileName = fileName;
+    public InputDownloadFileHandler(String pathFile, String userName, InfoFileClass fileData, ClientEventController eventController) {
         this.pathFile = pathFile;
         this.userName = userName;
-        this.size = size;
+        this.fileData = fileData;
+        this.fileName = fileData.getFileName();
         this.eventController = eventController;
         createFileTemp();
+        System.out.println("InputDownloadFileHandler fileData.getPath()"+fileData.getPath());
     }
 
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -57,16 +58,9 @@ public class InputDownloadFileHandler extends ChannelInboundHandlerAdapter {
     }
 
     private void createFileTemp () {
-        /*StatusFile statusFile;
-        if (eventController!=null) {
-            statusFile = StatusFile.DOWNLOAD;
-        }else {
-            statusFile = StatusFile.SEND;
-        }*/
-        // Создание tmp фала только при внезапном отключении сервера
+        // Создание tmp фала только при внезапном отключении сервера или клиента
         if (eventController==null) {
-            InfoFileClass data = new InfoFileClass(pathFile, fileName, size, StatusFile.SEND);
-            TempFileClass tmp = new TempFileClass(data, userName);
+            TempFileClass tmp = new TempFileClass(fileData, userName);
             try {
                 tmp.createTmp();
             } catch (IOException e) {
@@ -76,8 +70,7 @@ public class InputDownloadFileHandler extends ChannelInboundHandlerAdapter {
     }
 
     private void deleteTempFile () {
-        InfoFileClass data = new InfoFileClass(pathFile, fileName, size, StatusFile.SEND);
-        TempFileClass tmp = new TempFileClass(data, userName);
+        TempFileClass tmp = new TempFileClass(fileData, userName);
         tmp.deleteTmp();
     }
 

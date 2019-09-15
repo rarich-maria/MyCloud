@@ -85,6 +85,20 @@ public class MessageDialogWindow {
         return false;
     }
 
+    public boolean showMessageUnloadedFile() {
+        int result = JOptionPane.showConfirmDialog(
+                  parent,
+                  "На сервере имеются незагруженные файлы. Продолжить загрузку? При выборе отмены файлы будут удалены", "Внимание!",
+                  JOptionPane.YES_NO_OPTION
+        );
+        if (result == JOptionPane.YES_OPTION) {
+            return true;
+        } else if (result == JOptionPane.NO_OPTION) {
+            System.out.println("Выбрано продолжение загрузки файла");
+        }
+        return false;
+    }
+
     public void messageError (Throwable cause) {
          if (cause instanceof Exception){
             JOptionPane.showMessageDialog(parent,

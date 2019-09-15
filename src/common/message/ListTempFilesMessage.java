@@ -27,7 +27,10 @@ public class ListTempFilesMessage extends AbstractMessage {
         File[] tmpFiles = myFiles.listFiles();
         if (tmpFiles.length!=0) {
             for (int i=0; i< tmpFiles.length; i++) {
-                listTemp.add(new TempFileClass(tmpFiles[i].getPath()).readFileDataFromTmp());
+                InfoFileClass fileClass = new TempFileClass(tmpFiles[i].getPath()).readFileDataFromTmp();
+                if (fileClass != null) {
+                    listTemp.add(fileClass);
+                }
             }
         }else {
             return listTemp;

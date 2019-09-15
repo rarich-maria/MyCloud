@@ -5,10 +5,13 @@ import common.StatusFile;
 import common.message.*;
 import swing.MainWindow;
 
+import java.util.List;
+
 public class ClientEventController {
     private MainWindow parent;
     private Network network;
     private InfoFileClass fileData;
+    private Long currentSize;
     private ImplClientController implClientController;
 
     public ClientEventController (ImplClientController implClientController) {
@@ -25,6 +28,15 @@ public class ClientEventController {
         selectModeNetwork();
     }
 
+    public ClientEventController (ImplClientController implClientController, InfoFileClass fileData, Long currentSize) {
+        this.implClientController = implClientController;
+        this.fileData = fileData;
+        this.parent = implClientController.getParent();
+        this.network = new Network(this);
+        this.currentSize = currentSize;
+        reloadingFiles();
+    }
+
     public void sendMessage (AbstractMessage message) {
         network.sendMessage(message);
     }
@@ -37,10 +49,19 @@ public class ClientEventController {
         }
     }
 
+    private void reloadingFiles() {
+        network.changePipeline();
+        network.sendMessage(new NewChanelForSendFileMessage(parent.getUserName()));
+        System.out.println("reloadingFiles fileData.getPath() " + fileData.getPath());
+        network.sendMessage(new CommandMessage(CommandMessage.Command.RELOADING_FILE, fileData));
+        network.changeHandlerForReloadingFile(fileData.getPath(),  currentSize);
+        initDownloadFileOnTable();
+    }
+
     private void sendFileOnServer () {
         network.changePipeline();
         network.sendMessage(new NewChanelForSendFileMessage(parent.getUserName()));
-        network.sendMessage(new CommandMessage(CommandMessage.Command.ADD, fileData.getFileName(), fileData.getSize()));
+        network.sendMessage(new CommandMessage(CommandMessage.Command.ADD, fileData));
     }
 
     private void downloadFileFromServer () {
@@ -115,6 +136,18 @@ public class ClientEventController {
 
     public void fileUploadCompleted () {
         parent.getDialogWindow().showMessageDownloadCompleted(fileData.getFileName());
+    }
+
+    public void sendListUnloadedFiles (List<InfoFileClass> listUnloadedFiles) {
+        boolean result = parent.getDialogWindow().showMessageUnloadedFile();
+        if (result) {
+            implClientController.startReloadingFiles(listUnloadedFiles);
+        }else {
+            for (InfoFileClass name : listUnloadedFiles) {
+                implClientController.deleteFile(name.getInfoFile().getFileName(), parent.searchEqualsFileName(name.getInfoFile().getFileName()));
+            }
+            network.sendMessage(new CommandMessage(CommandMessage.Command.DELETE_ALL_TEMP_FILES));
+        }
     }
 
 }

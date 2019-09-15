@@ -2,6 +2,7 @@ package client;
 import client.controller.impl.ClientEventController;
 import client.handlers.AuthHandler;
 import client.handlers.ClientReadMessageHandler;
+import common.handlers.OutSendFileHandler;
 import common.message.*;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
@@ -95,11 +96,16 @@ public class Network {
     }
 
     public void changeHandlerForDownloadFile(String userName, String path, long size) {
-        this.currentChannel.pipeline().addLast(new ChannelHandler[]{new InputDownloadFileHandler(CLIENT_STORAGE, path, userName, size, eventController)});
+        this.currentChannel.pipeline().addLast(new ChannelHandler[]{new InputDownloadFileHandler(CLIENT_STORAGE, userName, eventController.getFileData(), eventController)});
     }
 
     public void changePipeline() {
         this.currentChannel.pipeline().remove(AuthHandler.class);
+    }
+
+    public void changeHandlerForReloadingFile(String path, Long currentSize) {
+        this.currentChannel.pipeline().addLast(new ChannelHandler[]{new OutSendFileHandler(path)});
+        getCurrentChannel().writeAndFlush(new CommandMessage(CommandMessage.Command.FILE_DOWNLOAD_NEXT_PART, 0, currentSize));
     }
 
     public void sendMessage (AbstractMessage message) {

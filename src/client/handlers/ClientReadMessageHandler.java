@@ -26,6 +26,9 @@ public class ClientReadMessageHandler extends ChannelInboundHandlerAdapter {
         } else if (mes instanceof FileMessage) {
             FileMessage message = (FileMessage) mes;
             ctx.fireChannelRead(message);
+        } else if (mes instanceof ListTempFilesMessage) {
+            ListTempFilesMessage message = (ListTempFilesMessage) mes;
+            eventController.sendListUnloadedFiles(message.getListTemp());
         }
     }
 

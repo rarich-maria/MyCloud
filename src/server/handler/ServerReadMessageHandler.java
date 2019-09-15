@@ -1,5 +1,6 @@
 package server.handler;
 
+import common.TempFileClass;
 import common.handlers.InputDownloadFileHandler;
 import common.handlers.OutSendFileHandler;
 import common.message.AbstractMessage;
@@ -34,6 +35,10 @@ public class ServerReadMessageHandler extends ChannelInboundHandlerAdapter {
                 ctx.close();
             } else if (command.getCommand() == CommandMessage.Command.FILE_DOWNLOAD_NEXT_PART) {
                 ctx.channel().writeAndFlush(command);
+            } else if (command.getCommand() == CommandMessage.Command.DELETE_ALL_TEMP_FILES) {
+                new TempFileClass(SERVER_STORAGE+userName).deleteAllTempFiles();
+            } else if (command.getCommand() == CommandMessage.Command.RELOADING_FILE) {
+                changeHandlerForReloadFile(ctx, command);
             }
         } else if (mes instanceof FileMessage) {
             FileMessage message = (FileMessage) mes;
@@ -49,6 +54,7 @@ public class ServerReadMessageHandler extends ChannelInboundHandlerAdapter {
             result = file.delete();
             System.out.println("File delete result " + result);
         }
+        new TempFileClass(SERVER_STORAGE+userName).deleteTmp(command.getPath());
         if (idx != null) {
             if (result) {
                 ctx.writeAndFlush(new CommandMessage(CommandMessage.Command.DELETE, true, idx));
@@ -64,14 +70,22 @@ public class ServerReadMessageHandler extends ChannelInboundHandlerAdapter {
     }
 
     private void changeHandlerForDownloadFile(ChannelHandlerContext ctx, CommandMessage command) {
-        File file = new File(SERVER_STORAGE + userName + "/" + command.getPath());
+        File file = new File(SERVER_STORAGE + userName + "/" + command.getFileData().getFileName());
         if (file.exists()) {
             ctx.writeAndFlush(new CommandMessage(CommandMessage.Command.FILE_EXIST_TRUE));
         } else {
             ctx.writeAndFlush(new CommandMessage(CommandMessage.Command.FILE_EXIST_FALSE));
             ctx.pipeline().addLast(new ChannelHandler[]{new InputDownloadFileHandler(SERVER_STORAGE,
-                                   command.getPath(), userName, command.getSize(), null)});
+                                   userName, command.getFileData(), null)});
         }
+    }
+
+    private void changeHandlerForReloadFile(ChannelHandlerContext ctx, CommandMessage command) {
+        File file = new File(SERVER_STORAGE + userName + "/" + command.getFileData().getFileName());
+        //ctx.writeAndFlush(new CommandMessage(CommandMessage.Command.FILE_EXIST_FALSE));
+        ctx.pipeline().addLast(new ChannelHandler[]{new InputDownloadFileHandler(SERVER_STORAGE,
+                      userName, command.getFileData(), null)});
+
     }
 
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {

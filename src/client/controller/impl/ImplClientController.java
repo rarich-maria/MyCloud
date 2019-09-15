@@ -7,6 +7,7 @@ import common.message.InfoFileClass;
 import swing.MainWindow;
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ImplClientController implements ClientController {
@@ -44,6 +45,11 @@ public class ImplClientController implements ClientController {
 
     public void startFileNetwork (InfoFileClass fileData) {
         ClientEventController fileEventController = new ClientEventController(this, fileData);
+        listDownload.put(fileData.getFileName(), fileEventController);
+    }
+
+    public void startReloadingFileNetwork (InfoFileClass fileData, Long currentSize) {
+        ClientEventController fileEventController = new ClientEventController(this, fileData, currentSize);
         listDownload.put(fileData.getFileName(), fileEventController);
     }
 
@@ -93,6 +99,14 @@ public class ImplClientController implements ClientController {
             }else {
                 System.out.println("Выбрана отмена удаления загружаемого фала");
             }
+        }
+    }
+
+    public void startReloadingFiles (List<InfoFileClass> listUnloadedFiles) {
+        for (InfoFileClass info: listUnloadedFiles) {
+            System.out.println("info.getInfoFile() name "+info.getInfoFile().getFileName());
+            System.out.println("info.getCurrentSize() " + info.getCurrentSize());
+            startReloadingFileNetwork(info.getInfoFile(), info.getCurrentSize());
         }
     }
 

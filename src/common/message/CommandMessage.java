@@ -3,7 +3,7 @@ package common.message;
 public class CommandMessage extends AbstractMessage {
     public enum Command {
         DELETE, ADD, DOWNLOAD, FILE_EXIST_TRUE, FILE_EXIST_FALSE, STOP, FILE_DOWNLOAD_NEXT_PART,
-        FILE_UPLOAD_COMPLETED, UNLOADED_FILES_ON_SERVER
+        FILE_UPLOAD_COMPLETED, DELETE_ALL_TEMP_FILES, RELOADING_FILE
     }
 
     private Command command;
@@ -11,6 +11,8 @@ public class CommandMessage extends AbstractMessage {
     private boolean result;
     private Integer idx;
     private long size;
+    private Long currentSize;
+    private InfoFileClass fileData;
 
     public CommandMessage (Command command) {
         this.command = command;
@@ -21,14 +23,20 @@ public class CommandMessage extends AbstractMessage {
         this.path = path;
         this.idx = idx;
     }
-    public CommandMessage (Command command, String path) {
-        this.command = command;
-        this.path = path;
-    }
 
     public CommandMessage (Command command, Integer idx) {
         this.command = command;
         this.idx = idx;
+    }
+
+    public CommandMessage (Command command, InfoFileClass fileData) {
+        this.command = command;
+        this.fileData = fileData;
+    }
+    public CommandMessage (Command command, Integer idx, Long currentSize) {
+        this.command = command;
+        this.idx = idx;
+        this.currentSize = currentSize;
     }
 
     public CommandMessage (Command command, String path, long size) {
@@ -61,5 +69,13 @@ public class CommandMessage extends AbstractMessage {
 
     public long getSize() {
         return size;
+    }
+
+    public Long getCurrentSize() {
+        return currentSize;
+    }
+
+    public InfoFileClass getFileData() {
+        return fileData;
     }
 }
