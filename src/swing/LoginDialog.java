@@ -1,7 +1,7 @@
 package swing;
-import client.Network;
 import client.auth.AuthException;
-import common.AuthMessage;
+import client.controller.impl.ImplClientController;
+
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
@@ -19,14 +19,14 @@ public class LoginDialog extends JDialog {
     private JButton btnLogin;
     private JButton btnCancel;
 
-    private final Network network;
+    private ImplClientController clientController;
 
     private boolean connected;
 
-    public LoginDialog(Frame parent, Network network) {
-        super(parent, "Login", true);
+    public LoginDialog(Frame parent, ImplClientController clientController) {
+        super(parent, "Окно авторизации", true);
 
-        this.network = network;
+        this.clientController = clientController;
         this.connected = false;
 
         JPanel panel = new JPanel(new GridBagLayout());
@@ -34,7 +34,7 @@ public class LoginDialog extends JDialog {
 
         cs.fill = GridBagConstraints.HORIZONTAL;
 
-        lbUsername = new JLabel("Username: ");
+        lbUsername = new JLabel("Имя пользователя: ");
         cs.gridx = 0;
         cs.gridy = 0;
         cs.gridwidth = 1;
@@ -46,7 +46,7 @@ public class LoginDialog extends JDialog {
         cs.gridwidth = 2;
         panel.add(tfUsername, cs);
 
-        lbPassword = new JLabel("Password: ");
+        lbPassword = new JLabel("Пароль: ");
         cs.gridx = 0;
         cs.gridy = 1;
         cs.gridwidth = 1;
@@ -59,17 +59,15 @@ public class LoginDialog extends JDialog {
         panel.add(pfPassword, cs);
         panel.setBorder(new LineBorder(Color.GRAY));
 
-        btnLogin = new JButton("Login");
-        btnCancel = new JButton("Cancel");
+        btnLogin = new JButton("Войти");
+        btnCancel = new JButton("Отмена");
 
         JPanel bp = new JPanel();
         bp.add(btnLogin);
         btnLogin.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
-                    network.sendMessage(new AuthMessage(tfUsername.getText(), String.valueOf(pfPassword.getPassword())));
-
+                clientController.tryAuthorization(tfUsername.getText(), String.valueOf(pfPassword.getPassword()));
             }
         });
 
@@ -83,14 +81,12 @@ public class LoginDialog extends JDialog {
 
         getContentPane().add(panel, BorderLayout.CENTER);
         getContentPane().add(bp, BorderLayout.PAGE_END);
-
         pack();
         setResizable(false);
         setLocationRelativeTo(parent);
     }
 
     public void tryCloseLoginDialog (Throwable cause) {
-
         if (cause instanceof AuthException) {
             JOptionPane.showMessageDialog(LoginDialog.this,
                       "Ошибка авторизации",
@@ -104,11 +100,9 @@ public class LoginDialog extends JDialog {
                       JOptionPane.ERROR_MESSAGE);
             return;
         }
-
         if (connected){
             dispose();
         }
-
     }
 
     public void setConnected (boolean result) {
