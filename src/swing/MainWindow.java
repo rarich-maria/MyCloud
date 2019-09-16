@@ -171,7 +171,7 @@ public class MainWindow extends JFrame {
         }
     }
 
-    public int searchEqualsFileName(String fileName) {
+    public Integer searchEqualsFileName(String fileName) {
         return table.searchEqualsFileName(fileName);
     }
 

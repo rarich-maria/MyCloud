@@ -17,7 +17,6 @@ public class ListFilesMessage extends AbstractMessage {
             myFiles.mkdir();
         }
         File[] files = myFiles.listFiles();
-
         if (files.length!=0) {
             arr = new String[files.length][2];
             for (int i=0; i<files.length; i++){

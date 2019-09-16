@@ -1,7 +1,4 @@
 package swing;
-
-import client.auth.AuthException;
-
 import javax.swing.*;
 
 public class MessageDialogWindow {

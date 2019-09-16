@@ -23,15 +23,9 @@ public class OutSendFileHandler extends ChannelOutboundHandlerAdapter {
         if (msg instanceof CommandMessage) {
             CommandMessage message = (CommandMessage) msg;
             File file = new File(pathFile);
-            System.out.println("OutSendFileHandler pathFile "+ pathFile);
             if (message.getCurrentSize()!= null) {position = message.getCurrentSize();}
-            System.out.println("position " + position);
             int partsCount = (new Long((file.length() - position) / (long) BUFF_SIZE)).intValue();
-
-            if (file.length() % (long) BUFF_SIZE != 0L) {
-                ++partsCount;
-            }
-            System.out.println("partsCount " + partsCount);
+            if (file.length() % (long) BUFF_SIZE != 0L) {++partsCount;}
             FileMessage fmOut = new FileMessage(pathFile, -1, partsCount, new byte[BUFF_SIZE]);
             RandomAccessFile inRnd = new RandomAccessFile(file, "r");
             int i = message.getIdx();

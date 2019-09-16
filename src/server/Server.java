@@ -25,7 +25,7 @@ public class Server {
         NioEventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
             ServerBootstrap b = new ServerBootstrap();
-            ((ServerBootstrap)b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)).childHandler(new ChannelInitializer<SocketChannel>() {
+            (b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)).childHandler(new ChannelInitializer<SocketChannel>() {
                 public void initChannel(SocketChannel ch) throws Exception {
                     ch.pipeline().addLast(new ChannelHandler[]{new ObjectDecoder(MAX_OBJECT_SIZE,
                                                                ClassResolvers.cacheDisabled((ClassLoader) null)),

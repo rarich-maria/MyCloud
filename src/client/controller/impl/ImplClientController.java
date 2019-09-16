@@ -104,8 +104,6 @@ public class ImplClientController implements ClientController {
 
     public void startReloadingFiles (List<InfoFileClass> listUnloadedFiles) {
         for (InfoFileClass info: listUnloadedFiles) {
-            System.out.println("info.getInfoFile() name "+info.getInfoFile().getFileName());
-            System.out.println("info.getCurrentSize() " + info.getCurrentSize());
             startReloadingFileNetwork(info.getInfoFile(), info.getCurrentSize());
         }
     }

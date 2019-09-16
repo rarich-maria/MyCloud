@@ -58,7 +58,7 @@ public class ClientReadMessageHandler extends ChannelInboundHandlerAdapter {
                 eventController.deleteFileFromFilesList(command.getIdx());
             }
             if (fileData != null) {
-                ctx.writeAndFlush(new CommandMessage(CommandMessage.Command.ADD, fileData.getFileName(), fileData.getSize()));
+                ctx.writeAndFlush(new CommandMessage(CommandMessage.Command.ADD, fileData));
             }
         } else {
             System.out.println("File delete false");

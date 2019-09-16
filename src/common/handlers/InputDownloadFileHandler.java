@@ -32,7 +32,6 @@ public class InputDownloadFileHandler extends ChannelInboundHandlerAdapter {
         this.fileName = fileData.getFileName();
         this.eventController = eventController;
         createFileTemp();
-        System.out.println("InputDownloadFileHandler fileData.getPath()"+fileData.getPath());
     }
 
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -58,7 +57,6 @@ public class InputDownloadFileHandler extends ChannelInboundHandlerAdapter {
     }
 
     private void createFileTemp () {
-        // Создание tmp фала только при внезапном отключении сервера или клиента
         if (eventController==null) {
             TempFileClass tmp = new TempFileClass(fileData, userName);
             try {

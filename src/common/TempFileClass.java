@@ -50,11 +50,12 @@ public class TempFileClass {
             FileInputStream streamIn = new FileInputStream(path);
             objectinputstream = new ObjectInputStream(streamIn);
             InfoFileClass fileInfo = (InfoFileClass) objectinputstream.readObject();
-            System.out.println("readFileDataFromTmp fileInfo.getPath()"+ fileInfo.getPath());
             long currentFileSize = getCurrentFileSize(fileInfo.getFileName());
             if (currentFileSize != fileInfo.getSize()) {
                 result = new InfoFileClass (fileInfo, currentFileSize);
                 System.out.println("result InfoFileClass " + result.getCurrentSize());
+            }else {
+                delete(path);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -68,22 +69,21 @@ public class TempFileClass {
 
     public void deleteTmp () {
         String path = SERVER_STORAGE+ userName +"/" + SERVER_TMP + fileData.getFileName() + EXTENSION;
-        File file = new File (path);
+        delete(path);
+    }
+
+    private void delete(String path) {
+        File file = new File(path);
         if (file.delete()) {
             System.out.println("Delete tmpFile true");
-        }else {
+        } else {
             System.out.println("Delete tmpFile false");
         }
     }
 
     public void deleteTmp (String fileName) {
         String tempPath = path + "/" + SERVER_TMP + fileName + EXTENSION;
-        File file = new File (tempPath);
-        if (file.delete()) {
-            System.out.println("Delete tmpFile true");
-        }else {
-            System.out.println("Delete tmpFile false");
-        }
+        delete(tempPath);
     }
 
     private void checkDirectory() {
@@ -95,16 +95,18 @@ public class TempFileClass {
 
     private long getCurrentFileSize (String fileName) {
         String filePath = delimiterPath()+fileName;
-        return new File(filePath).length();
+        File file = new File(filePath);
+        if (file.exists()) {
+            return file.length();
+        }
+        return 0;
     }
 
     private String delimiterPath () {
         File f = new File(path);
         for (int i=0; i< 2; i++) {
             f = f.getParentFile();
-            System.out.println("Parent=" + f.getName());
         }
-        System.out.println("f.getPath() " + f.getPath());
         return f.getPath()+"\\";
     }
 

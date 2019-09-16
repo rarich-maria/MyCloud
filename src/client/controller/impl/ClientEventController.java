@@ -51,8 +51,7 @@ public class ClientEventController {
 
     private void reloadingFiles() {
         network.changePipeline();
-        network.sendMessage(new NewChanelForSendFileMessage(parent.getUserName()));
-        System.out.println("reloadingFiles fileData.getPath() " + fileData.getPath());
+        network.sendMessage(new NewChanelForSendFileMessage(parent.getUserName()));        ;
         network.sendMessage(new CommandMessage(CommandMessage.Command.RELOADING_FILE, fileData));
         network.changeHandlerForReloadingFile(fileData.getPath(),  currentSize);
         initDownloadFileOnTable();

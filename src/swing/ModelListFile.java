@@ -54,7 +54,7 @@ public class ModelListFile extends JTable {
     }
 
     public void removeFile (Integer idx) {
-        tableModel.removeRow(idx);
+        if (idx!=null) {tableModel.removeRow(idx);}
     }
 
     public JTable getTable () {
